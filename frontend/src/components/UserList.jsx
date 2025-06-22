@@ -57,76 +57,44 @@ export default function UserList() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <div className="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-                <h2 className="text-xl font-bold mb-4">User Management</h2>
-                {user.role === 'GLOBAL_ADMIN' && (
-                    <form onSubmit={handleCreateAdmin} className="mb-6 flex flex-col md:flex-row gap-2 items-center">
-                        <input
-                            className="border rounded px-3 py-2"
-                            type="text"
-                            placeholder="New admin username"
-                            value={adminUsername}
-                            onChange={e => setAdminUsername(e.target.value)}
-                            required
-                        />
-                        <input
-                            className="border rounded px-3 py-2"
-                            type="password"
-                            placeholder="Password"
-                            value={adminPassword}
-                            onChange={e => setAdminPassword(e.target.value)}
-                            required
-                        />
-                        <button
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                            type="submit"
-                        >
-                            Create Admin
-                        </button>
-                        {adminError && <span className="text-red-500 text-sm ml-2">{adminError}</span>}
-                        {adminSuccess && <span className="text-green-600 text-sm ml-2">{adminSuccess}</span>}
-                    </form>
-                )}
-                {loading ? <div>Loading...</div> : (
-                    <table className="w-full text-left border">
-                        <thead>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-10 px-4">
+            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+                <h2 className="text-2xl font-bold text-blue-700 mb-6">Users</h2>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-blue-100">
                             <tr>
-                                <th className="border px-4 py-2">Username</th>
-                                <th className="border px-4 py-2">Role</th>
-                                <th className="border px-4 py-2">Actions</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">Username</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">Role</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">Projects</th>
+                                <th className="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {users.map(user => (
-                                <tr key={user.id}>
-                                    <td className="border px-4 py-2">{user.username}</td>
-                                    <td className="border px-4 py-2">
-                                        <select
-                                            value={user.role}
-                                            onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                            className="p-1 border rounded"
-                                            disabled={user.role === 'GLOBAL_ADMIN'}
-                                        >
-                                            <option value="EMPLOYEE">Employee</option>
-                                            <option value="ADMIN">Admin</option>
-                                            <option value="GLOBAL_ADMIN">Global Admin</option>
-                                        </select>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                            {users.map((user) => (
+                                <tr key={user.id} className="hover:bg-blue-50 transition">
+                                    <td className="px-6 py-4 font-semibold text-blue-900">{user.username}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${user.role === 'GLOBAL_ADMIN' ? 'bg-purple-100 text-purple-700' : user.role === 'ADMIN' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{user.role}</span>
                                     </td>
-                                    <td className="border px-4 py-2">
-                                        <button 
-                                            onClick={() => handleDelete(user.id)} 
-                                            className="text-red-600"
-                                            disabled={user.role === 'GLOBAL_ADMIN'}
-                                        >
-                                            Delete
-                                        </button>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {user.projects && user.projects.map((p) => (
+                                                <span key={p.id} className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">{p.name}</span>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 flex gap-2">
+                                        <button
+                                            onClick={() => handleDelete(user.id)}
+                                            className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 font-semibold transition"
+                                        >Delete</button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                )}
+                </div>
             </div>
         </div>
     );

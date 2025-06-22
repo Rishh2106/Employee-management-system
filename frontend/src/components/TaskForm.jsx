@@ -40,8 +40,9 @@ export default function TaskForm({ editMode }) {
           setSelectedProject(task.project?.id || '');
         })
         .catch(() => {});
-    }
+      }
   }, [editMode, id, user.role]);
+
 
   useEffect(() => {
     if (selectedProject) {
@@ -89,104 +90,75 @@ export default function TaskForm({ editMode }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">{editMode ? 'Edit Task' : 'New Task'}</h2>
-        <input
-          className="w-full mb-4 px-3 py-2 border rounded"
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          required
-          disabled={user.role !== 'ADMIN'}
-        />
-        <textarea
-          className="w-full mb-4 px-3 py-2 border rounded"
-          placeholder="Description"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          required
-          disabled={user.role !== 'ADMIN'}
-        />
-        {user.role !== 'EMPLOYEE' && (
-          <>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-200 relative">
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold"
+          onClick={() => navigate('/tasks')}
+        >&times;</button>
+        <h2 className="text-2xl font-bold mb-6 text-blue-700 text-center">{editMode ? 'Edit Task' : 'Create Task'}</h2>
+        {error && <div className="mb-4 text-red-600 text-center font-semibold">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+            required
+          />
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Assign Users</label>
             <select
-              className="w-full mb-4 px-3 py-2 border rounded"
-              value={selectedProject}
-              onChange={e => setSelectedProject(e.target.value)}
-              required
-            >
-              <option value="">Select a Project</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-            <input
-              className="w-full mb-4 px-3 py-2 border rounded"
-              type="date"
-              placeholder="Start Date"
-              value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-              required
-            />
-            <input
-              className="w-full mb-4 px-3 py-2 border rounded"
-              type="date"
-              placeholder="Deadline"
-              value={deadline}
-              onChange={e => setDeadline(e.target.value)}
-              required
-            />
-          </>
-        )}
-        {user.role !== 'EMPLOYEE' && (
-          <>
-            <label className="block mb-1 font-medium" htmlFor="assignedTo-multi">
-              Assign to (hold Ctrl/Cmd to select multiple):
-              <input type="checkbox" checked readOnly className="ml-2 align-middle" style={{ pointerEvents: 'none' }} />
-              <span className="ml-1 text-xs text-gray-500">Multi-select enabled</span>
-            </label>
-            <select
-              id="assignedTo-multi"
-              className="w-full mb-4 px-3 py-2 border rounded"
+              multiple
               value={assignedTo}
               onChange={e => setAssignedTo(Array.from(e.target.selectedOptions, option => option.value))}
-              multiple
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg bg-white h-32"
               required
             >
-              {users.map(u => (
-                <option key={u.id} value={u.id}>{u.username}</option>
+              {users.map(user => (
+                <option key={user.id} value={user.id}>{user.username}</option>
               ))}
             </select>
-          </>
-        )}
-        {editMode && ((user.role === 'ADMIN') || (user.id === taskAssignedTo)) && (
-          <select
-            className="w-full mb-4 px-3 py-2 border rounded"
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-            required
+            <div className="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple users.</div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block mb-1 text-gray-700 font-semibold">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block mb-1 text-gray-700 font-semibold">Deadline</label>
+              <input
+                type="date"
+                value={deadline}
+                onChange={e => setDeadline(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+                required
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white py-3 rounded-lg font-semibold text-lg shadow hover:bg-blue-700 transition mt-2"
           >
-            <option value="NEW">NEW</option>
-            <option value="ACCEPTED">ACCEPTED</option>
-            <option value="COMPLETED">COMPLETED</option>
-            <option value="FAILED">FAILED</option>
-          </select>
-        )}
-        {error && <div className="text-red-500 mb-2 text-sm">{error}</div>}
-        <button
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? (editMode ? 'Saving...' : 'Creating...') : (editMode ? 'Save' : 'Create')}
-        </button>
-        {success && <div className="text-green-600 mt-2 text-sm">Success! Redirecting...</div>}
-        <div className="mt-4">
-          <button type="button" onClick={() => navigate('/tasks')} className="text-blue-600">Back to Tasks</button>
-        </div>
-      </form>
+            {editMode ? 'Update Task' : 'Create Task'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 } 

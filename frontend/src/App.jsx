@@ -29,18 +29,19 @@ function GlobalAdminRoute({ children }) {
 function Navigation() {
   const { user, logout } = useAuth();
   return (
-    <nav className="bg-gray-800 text-white p-4 flex justify-between">
-      <div>
-        <Link to="/" className="font-bold mr-4">Ewspurp EMS</Link>
-        {user && <Link to="/dashboard" className="mr-4">Dashboard</Link>}
-        {user && <Link to="/tasks" className="mr-4">Tasks</Link>}
-        {user && user.role !== 'EMPLOYEE' && <Link to="/projects" className="mr-4">Projects</Link>}
-        {user && user.role === 'GLOBAL_ADMIN' && <Link to="/users" className="mr-4">Users</Link>}
+    <nav className="bg-white shadow sticky top-0 z-50 px-6 py-3 flex items-center justify-between border-b border-gray-200">
+      <div className="flex items-center gap-4">
+        <Link to="/" className="font-bold text-xl text-blue-700 tracking-tight">Ewspurp EMS</Link>
+        {user && <Link to="/dashboard" className="text-gray-700 hover:text-blue-700 transition">Dashboard</Link>}
+        {user && <Link to="/tasks" className="text-gray-700 hover:text-blue-700 transition">Tasks</Link>}
+        {user && user.role !== 'EMPLOYEE' && <Link to="/projects" className="text-gray-700 hover:text-blue-700 transition">Projects</Link>}
+        {user && user.role === 'GLOBAL_ADMIN' && <Link to="/users" className="text-gray-700 hover:text-blue-700 transition">Users</Link>}
       </div>
-      <div>
-        {!user && <Link to="/login" className="mr-4">Login</Link>}
-        {!user && <Link to="/register">Register</Link>}
-        {user && <button onClick={logout} className="bg-red-500 px-3 py-1 rounded">Logout</button>}
+      <div className="flex items-center gap-4">
+        {user && <span className="text-sm text-gray-500">{user.username} ({user.role})</span>}
+        {!user && <Link to="/login" className="text-blue-600 hover:underline">Login</Link>}
+        {!user && <Link to="/register" className="text-blue-600 hover:underline">Register</Link>}
+        {user && <button onClick={logout} className="bg-red-500 px-3 py-1 rounded text-white hover:bg-red-600 transition">Logout</button>}
       </div>
     </nav>
   );
