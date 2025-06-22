@@ -18,9 +18,23 @@ public class Task {
     @Column(nullable = false)
     private String status; // e.g., NEW, ACCEPTED, COMPLETED, FAILED
 
+    @ManyToMany
+    @JoinTable(
+        name = "task_users",
+        joinColumns = @JoinColumn(name = "task_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private java.util.List<User> assignedTo = new java.util.ArrayList<>();
+
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User assignedTo;
+    @JoinColumn(name="project_id")
+    private Project project;
+
+    @Column
+    private java.time.LocalDate startDate;
+
+    @Column
+    private java.time.LocalDate deadline;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -31,6 +45,12 @@ public class Task {
     public void setDescription(String description) { this.description = description; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    public User getAssignedTo() { return assignedTo; }
-    public void setAssignedTo(User assignedTo) { this.assignedTo = assignedTo; }
+    public java.util.List<User> getAssignedTo() { return assignedTo; }
+    public void setAssignedTo(java.util.List<User> assignedTo) { this.assignedTo = assignedTo; }
+    public java.time.LocalDate getStartDate() { return startDate; }
+    public void setStartDate(java.time.LocalDate startDate) { this.startDate = startDate; }
+    public java.time.LocalDate getDeadline() { return deadline; }
+    public void setDeadline(java.time.LocalDate deadline) { this.deadline = deadline; }
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
 } 

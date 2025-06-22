@@ -30,6 +30,23 @@ export default function TaskList() {
     }
   };
 
+  const handleStatusToggle = async (task) => {
+    const newStatus = task.status === 'COMPLETED' ? 'NEW' : 'COMPLETED';
+    try {
+      await apiRequest(`/tasks/${task.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          status: newStatus,
+          userId: user.id,
+          role: user.role,
+        }),
+      });
+      setTasks(tasks.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
+    } catch (e) {
+      alert('Failed to update status: ' + e.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow">
@@ -46,33 +63,55 @@ export default function TaskList() {
         ) : tasks.length === 0 ? (
           <div>No tasks found.</div>
         ) : (
-          <table className="w-full text-left border">
-            <thead>
-              <tr>
-                <th className="border px-2 py-1">Title</th>
-                <th className="border px-2 py-1">Description</th>
-                <th className="border px-2 py-1">Status</th>
-                <th className="border px-2 py-1">Assigned To</th>
-                {user.role === 'ADMIN' && <th className="border px-2 py-1">Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map(task => (
-                <tr key={task.id}>
-                  <td className="border px-2 py-1">{task.title}</td>
-                  <td className="border px-2 py-1">{task.description}</td>
-                  <td className="border px-2 py-1">{task.status}</td>
-                  <td className="border px-2 py-1">{task.assignedTo?.username || '-'}</td>
-                  {user.role === 'ADMIN' && (
-                    <td className="border px-2 py-1">
-                      <Link to={`/tasks/${task.id}/edit`} className="text-blue-600 mr-2">Edit</Link>
-                      <button onClick={() => handleDelete(task.id)} className="text-red-600">Delete</button>
-                    </td>
-                  )}
+          <>
+            {user.role === 'EMPLOYEE' && tasks.some(task => task.project && task.project.active === false) && (
+              <div className="text-red-600 mb-4">One or more of your projects has been removed. You can't work on those tasks anymore.</div>
+            )}
+            <table className="w-full text-left border">
+              <thead>
+                <tr>
+                  <th className="border px-2 py-1">Title</th>
+                  <th className="border px-2 py-1">Description</th>
+                  <th className="border px-2 py-1">Status</th>
+                  <th className="border px-2 py-1">Assigned To</th>
+                  <th className="border px-2 py-1">Start Date</th>
+                  <th className="border px-2 py-1">Deadline</th>
+                  <th className="border px-2 py-1">Project</th>
+                  {user.role === 'ADMIN' && <th className="border px-2 py-1">Actions</th>}
+                  {user.role === 'EMPLOYEE' && <th className="border px-2 py-1">Mark as Done</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tasks.filter(task => !task.project || task.project.active !== false).map(task => (
+                  <tr key={task.id}>
+                    <td className="border px-2 py-1">{task.title}</td>
+                    <td className="border px-2 py-1">{task.description}</td>
+                    <td className="border px-2 py-1">{task.status}</td>
+                    <td className="border px-2 py-1">{task.assignedTo?.map(u => u.username).join(', ') || '-'}</td>
+                    <td className="border px-2 py-1">{task.startDate || '-'}</td>
+                    <td className="border px-2 py-1">{task.deadline || '-'}</td>
+                    <td className="border px-2 py-1">{task.project?.name || '-'}</td>
+                    {user.role === 'ADMIN' && (
+                      <td className="border px-2 py-1">
+                        <Link to={`/tasks/${task.id}/edit`} className="text-blue-600 mr-2">Edit</Link>
+                        <button onClick={() => handleDelete(task.id)} className="text-red-600">Delete</button>
+                      </td>
+                    )}
+                    {user.role === 'EMPLOYEE' && user.id === (task.assignedTo?.find(u => u.id === user.id)?.id) && (
+                      <td className="border px-2 py-1">
+                        <button
+                          onClick={() => handleStatusToggle(task)}
+                          className={`px-2 py-1 rounded ${task.status === 'COMPLETED' ? 'bg-gray-400 text-white' : 'bg-green-600 text-white'}`}
+                        >
+                          {task.status === 'COMPLETED' ? 'Mark as Not Done' : 'Mark as Done'}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
         <div className="mt-4">
           <button onClick={() => navigate('/dashboard')} className="text-blue-600">Back to Dashboard</button>

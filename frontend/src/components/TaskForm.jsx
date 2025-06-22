@@ -8,19 +8,24 @@ export default function TaskForm({ editMode }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('NEW');
-  const [assignedTo, setAssignedTo] = useState('');
+  const [assignedTo, setAssignedTo] = useState([]);
   const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
+  const [startDate, setStartDate] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [taskAssignedTo, setTaskAssignedTo] = useState('');
 
   useEffect(() => {
-    if (user.role === 'ADMIN') {
-      apiRequest('/users')
-        .then(setUsers)
-        .catch(() => setUsers([]));
+    if (user.role !== 'EMPLOYEE') {
+      apiRequest('/projects')
+        .then(setProjects)
+        .catch(() => {});
     }
     if (editMode && id) {
       apiRequest(`/tasks/${id}`)
@@ -28,11 +33,24 @@ export default function TaskForm({ editMode }) {
           setTitle(task.title);
           setDescription(task.description);
           setStatus(task.status);
-          setAssignedTo(task.assignedTo?.id || '');
+          setAssignedTo(task.assignedTo?.map(u => u.id) || []);
+          setTaskAssignedTo(task.assignedTo?.map(u => u.id) || []);
+          setStartDate(task.startDate || '');
+          setDeadline(task.deadline || '');
+          setSelectedProject(task.project?.id || '');
         })
         .catch(() => {});
     }
   }, [editMode, id, user.role]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      const project = projects.find(p => p.id === Number(selectedProject));
+      setUsers(project ? project.employees : []);
+    } else {
+      setUsers([]);
+    }
+  }, [selectedProject, projects]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,9 +60,20 @@ export default function TaskForm({ editMode }) {
       const payload = {
         title,
         description,
-        status,
-        assignedTo: assignedTo ? { id: assignedTo } : null,
+        assignedTo: assignedTo.map(id => ({ id })),
+        userId: user.id,
+        role: user.role,
       };
+      if (user.role === 'ADMIN') {
+        payload.startDate = startDate;
+        payload.deadline = deadline;
+        payload.status = status;
+      } else if (editMode && user.id === taskAssignedTo) {
+        payload.status = status;
+      }
+      if (selectedProject) {
+        payload.project = { id: selectedProject };
+      }
       if (editMode && id) {
         await apiRequest(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
       } else {
@@ -70,6 +99,7 @@ export default function TaskForm({ editMode }) {
           value={title}
           onChange={e => setTitle(e.target.value)}
           required
+          disabled={user.role !== 'ADMIN'}
         />
         <textarea
           className="w-full mb-4 px-3 py-2 border rounded"
@@ -77,21 +107,61 @@ export default function TaskForm({ editMode }) {
           value={description}
           onChange={e => setDescription(e.target.value)}
           required
+          disabled={user.role !== 'ADMIN'}
         />
-        {user.role === 'ADMIN' && (
-          <select
-            className="w-full mb-4 px-3 py-2 border rounded"
-            value={assignedTo}
-            onChange={e => setAssignedTo(e.target.value)}
-            required
-          >
-            <option value="">Assign to...</option>
-            {users.map(u => (
-              <option key={u.id} value={u.id}>{u.username}</option>
-            ))}
-          </select>
+        {user.role !== 'EMPLOYEE' && (
+          <>
+            <select
+              className="w-full mb-4 px-3 py-2 border rounded"
+              value={selectedProject}
+              onChange={e => setSelectedProject(e.target.value)}
+              required
+            >
+              <option value="">Select a Project</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <input
+              className="w-full mb-4 px-3 py-2 border rounded"
+              type="date"
+              placeholder="Start Date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              required
+            />
+            <input
+              className="w-full mb-4 px-3 py-2 border rounded"
+              type="date"
+              placeholder="Deadline"
+              value={deadline}
+              onChange={e => setDeadline(e.target.value)}
+              required
+            />
+          </>
         )}
-        {editMode && (
+        {user.role !== 'EMPLOYEE' && (
+          <>
+            <label className="block mb-1 font-medium" htmlFor="assignedTo-multi">
+              Assign to (hold Ctrl/Cmd to select multiple):
+              <input type="checkbox" checked readOnly className="ml-2 align-middle" style={{ pointerEvents: 'none' }} />
+              <span className="ml-1 text-xs text-gray-500">Multi-select enabled</span>
+            </label>
+            <select
+              id="assignedTo-multi"
+              className="w-full mb-4 px-3 py-2 border rounded"
+              value={assignedTo}
+              onChange={e => setAssignedTo(Array.from(e.target.selectedOptions, option => option.value))}
+              multiple
+              required
+            >
+              {users.map(u => (
+                <option key={u.id} value={u.id}>{u.username}</option>
+              ))}
+            </select>
+          </>
+        )}
+        {editMode && ((user.role === 'ADMIN') || (user.id === taskAssignedTo)) && (
           <select
             className="w-full mb-4 px-3 py-2 border rounded"
             value={status}

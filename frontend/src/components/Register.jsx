@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiRequest } from '../api';
 import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('EMPLOYEE');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [projectId, setProjectId] = useState('');
+  const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    apiRequest('/projects/active')
+      .then(setProjects)
+      .catch(() => setProjects([]));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +25,7 @@ export default function Register() {
     try {
       await apiRequest('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, password, role }),
+        body: JSON.stringify({ username, password, projectId }),
       });
       setSuccess(true);
       setTimeout(() => navigate('/login'), 1500);
@@ -51,11 +58,14 @@ export default function Register() {
         />
         <select
           className="w-full mb-4 px-3 py-2 border rounded"
-          value={role}
-          onChange={e => setRole(e.target.value)}
+          value={projectId}
+          onChange={e => setProjectId(e.target.value)}
+          required
         >
-          <option value="EMPLOYEE">Employee</option>
-          <option value="ADMIN">Admin</option>
+          <option value="">Select a Project</option>
+          {projects.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
         </select>
         {error && <div className="text-red-500 mb-2 text-sm">{error}</div>}
         <button
