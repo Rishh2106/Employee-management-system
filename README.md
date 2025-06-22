@@ -34,4 +34,37 @@ Ewspurp/
 
 ---
 
+## Application Flow
+
+### Roles & Permissions
+- **Global Admin/Owner**: Can only be set up once (if not present). Has full access to create admin users, manage all projects and users.
+- **Admin**: Created by the global admin. Can manage projects, assign employees to projects, and assign tasks to employees.
+- **Employee**: Can register and sign up for active projects. Can view and mark only their own tasks as done.
+
+### Global Admin Setup
+- On first launch, if no global admin exists, a setup form is shown.
+- The global admin can then create admin users from the dashboard.
+
+### Project & User Management
+- Projects are managed by admins/global admin.
+- Employees can sign up for active projects during registration.
+- Admins can assign employees to projects and manage project membership.
+
+### Task Management
+- Tasks can be assigned to multiple employees (many-to-many relationship).
+- Only admins can set task deadlines and start dates.
+- Employees can only mark their own assigned tasks as done.
+- Admins can create, edit, and delete tasks for projects they manage.
+
+### UI/UX
+- Modern, responsive UI built with Tailwind CSS.
+- Role-based dashboards:
+  - **Global Admin/Owner**: User and admin management, project oversight.
+  - **Admin**: Project and task management, employee assignment.
+  - **Employee**: Project participation, task tracking, and completion.
+- Multi-select dropdowns for assigning tasks to multiple employees.
+- Clear navigation and visual cues for all roles.
+
+---
+
 For more details, see the `frontend/` and `backend/` READMEs. 
